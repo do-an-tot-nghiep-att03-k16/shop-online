@@ -1,0 +1,138 @@
+# Render Blueprint
+# Docs: https://render.com/docs/infrastructure-as-code
+
+services:
+  - type: web
+    name: ocs-backend
+    env: docker
+    plan: starter
+    # Use public images on GHCR or configure registry credentials in the dashboard
+    image:
+      url: ghcr.io/${RENDER_GITHUB_OWNER:-your-github-owner}/online-clothing-store:latest
+    autoDeploy: true
+    healthCheckPath: /v1/api/jobs/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        # e.g. mongodb+srv://user:pass@cluster0.x.mongodb.net/db?retryWrites=true&w=majority
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: ocs-redis
+          type: redis
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        # e.g. https://your-pages-site.pages.dev,https://www.yourdomain.com
+        sync: false
+      - key: EMAIL_SMTP_HOST
+        sync: false
+      - key: EMAIL_SMTP_USER
+        sync: false
+      - key: EMAIL_SMTP_PASS
+        sync: false
+      - key: SEPAY_WEBHOOK_SECRET
+        sync: false
+
+  - type: web
+    name: ocs-cms
+    env: docker
+    plan: starter
+    image:
+      url: ghcr.io/${RENDER_GITHUB_OWNER:-your-github-owner}/my-cms:latest
+    autoDeploy: true
+    healthCheckPath: /_health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 1337
+      # Demo (SQLite) — persisted via attached disk below
+      - key: DATABASE_CLIENT
+        value: sqlite
+      - key: DATABASE_FILENAME
+        value: .tmp/data.db
+      # For production, switch to Postgres on Render and set DATABASE_* accordingly
+      # - key: DATABASE_CLIENT
+      #   value: postgres
+      # - key: DATABASE_URL
+      #   sync: false
+    disks:
+      - name: cms-data
+        mountPath: /opt/render/project/src/.tmp
+        sizeGB: 2
+
+  - type: redis
+    name: ocs-redis
+    plan: starter
+
+  - type: web
+    name: ocs-n8n
+    env: docker
+    plan: starter
+    image:
+      url: n8nio/n8n:latest
+    autoDeploy: false
+    healthCheckPath: /healthz
+    envVars:
+      - key: N8N_HOST
+        # Set to your n8n domain e.g. n8n.yourdomain.com
+        sync: false
+      - key: N8N_PORT
+        value: 5678
+      - key: N8N_PROTOCOL
+        value: https
+      - key: WEBHOOK_URL
+        # Set to https://n8n.yourdomain.com/
+        sync: false
+      - key: N8N_ENCRYPTION_KEY
+        # Generate: openssl rand -base64 32
+        sync: false
+      - key: DB_TYPE
+        value: postgresdb
+      - key: DB_POSTGRESDB_HOST
+        fromDatabase:
+          name: ocs-n8n-db
+          property: host
+      - key: DB_POSTGRESDB_PORT
+        fromDatabase:
+          name: ocs-n8n-db
+          property: port
+      - key: DB_POSTGRESDB_DATABASE
+        fromDatabase:
+          name: ocs-n8n-db
+          property: database
+      - key: DB_POSTGRESDB_USER
+        fromDatabase:
+          name: ocs-n8n-db
+          property: user
+      - key: DB_POSTGRESDB_PASSWORD
+        fromDatabase:
+          name: ocs-n8n-db
+          property: password
+      - key: EXECUTIONS_DATA_PRUNE
+        value: "true"
+      - key: EXECUTIONS_DATA_MAX_AGE
+        value: "168"
+    disks:
+      - name: n8n-data
+        mountPath: /home/node/.n8n
+        sizeGB: 5
+
+databases:
+  - name: ocs-n8n-db
+    databaseName: n8n
+    plan: starter
+
+# Notes:
+# - Ensure your GHCR images are public, or configure registry access in Render.
+# - Set secrets (MONGODB_URI, JWT_SECRET, REFRESH_TOKEN_SECRET, etc.) in Render dashboard.
+# - CORS_ORIGINS should include your Cloudflare Pages production and preview domains.

@@ -1,0 +1,78 @@
+# Environment variables (SECRETS - DO NOT COMMIT)
+.env
+.env.*
+*.env
+!*.env.example
+!*.env.sample
+
+# Node modules
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+*.log.*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+.tmp/
+
+# Docker volumes (data is in named volumes, not committed)
+*_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backups (do not commit backups to git)
+backups/
+*.backup
+*.bak
+
+# SSL certificates (sensitive)
+*.key
+*.crt
+*.pem
+ssl/
+
+# Strapi
+my-cms/.strapi/
+my-cms/exports/
+my-cms/build/
+my-cms/dist/
+my-cms/.strapi-updater.json
+my-cms/.strapi-cloud.json
+my-cms/public/uploads/*
+!my-cms/public/uploads/.gitkeep
+
+# n8n data (handled by volumes)
+n8n_data/
+
+# Backup folders (không cần push lên GitHub)
+backend-fix-backup/
+online-clothing-store-backup/
+order-backup/
+product-backup/
+scripts/

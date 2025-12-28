@@ -1,0 +1,79 @@
+name: CI/CD Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set OWNER env
+        run: echo "OWNER=${{ github.repository_owner }}" >> $GITHUB_ENV
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./online-clothing-store
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER }}/online-clothing-store:latest
+            ghcr.io/${{ env.OWNER }}/online-clothing-store:${{ github.sha }}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend-clothing-shop
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER }}/frontend-clothing-shop:latest
+            ghcr.io/${{ env.OWNER }}/frontend-clothing-shop:${{ github.sha }}
+
+      - name: Build and push cms
+        uses: docker/build-push-action@v6
+        with:
+          context: ./my-cms
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER }}/my-cms:latest
+            ghcr.io/${{ env.OWNER }}/my-cms:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH to EC2 and deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            sudo mkdir -p /srv/app && sudo chown $USER:$USER /srv/app
+            # Copy compose and nginx if not present (first time)
+            if [ ! -d /srv/app/nginx ]; then
+              mkdir -p /srv/app/nginx/conf.d
+            fi
+            # Write GITHUB_OWNER env file for compose substitutions
+            echo "GITHUB_OWNER=${{ github.repository_owner }}" > /srv/app/.env
+            # Sync files from repo (requires separate step if needed)
+            # Assuming you manually copied deploy/ folder beforehand.
+            cd /srv/app
+            docker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
+            docker compose -f /srv/app/docker-compose.yml pull || true
+            docker compose -f /srv/app/docker-compose.yml up -d --remove-orphans
+            docker image prune -f
