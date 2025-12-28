@@ -1,0 +1,70 @@
+{
+  "kind": "singleType",
+  "collectionName": "home_configurations",
+  "info": {
+    "singularName": "home-configuration",
+    "pluralName": "home-configurations",
+    "displayName": "Home Configuration"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "herro_title": {
+      "type": "string"
+    },
+    "hero_subtitle": {
+      "type": "string"
+    },
+    "hero_banners": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "slider_autoplay": {
+      "type": "boolean",
+      "default": true
+    },
+    "slider_duration": {
+      "type": "integer",
+      "default": 5000,
+      "min": 1000
+    },
+    "show_slider_dots": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_slider_arrows": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_coupons_section": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_categories_section": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_onsale_section": {
+      "type": "boolean",
+      "default": true
+    },
+    "featured_categories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::category.category"
+    },
+    "featured_coupons": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::coupon.coupon"
+    }
+  }
+}

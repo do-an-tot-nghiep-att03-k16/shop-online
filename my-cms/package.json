@@ -1,0 +1,52 @@
+{
+  "name": "my-cms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Strapi application",
+  "scripts": {
+    "sync-backend": "node scripts/sync-backend-data.js",
+    "sync-scheduler": "node scripts/scheduler.js",
+    "sync-scheduler-now": "node scripts/scheduler.js --sync-now",
+    "build": "strapi build",
+    "console": "strapi console",
+    "deploy": "strapi deploy",
+    "dev": "strapi develop",
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "strapi": "strapi",
+    "upgrade": "npx @strapi/upgrade latest",
+    "upgrade:dry": "npx @strapi/upgrade latest --dry",
+    "sync:all": "node scripts/sync-backend-data.js all",
+    "sync:categories": "node scripts/sync-backend-data.js categories",
+    "sync:coupons": "node scripts/sync-backend-data.js coupons",
+    "test:backend": "node scripts/test-backend-connection.js",
+    "test:strapi": "node scripts/test-strapi-connection.js"
+  },
+  "dependencies": {
+    "@strapi/plugin-cloud": "5.32.0",
+    "@strapi/plugin-users-permissions": "5.32.0",
+    "@strapi/strapi": "5.32.0",
+    "axios": "^1.13.2",
+    "better-sqlite3": "12.4.1",
+    "dotenv": "^17.2.3",
+    "node-cron": "^3.0.3",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "styled-components": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.0.0 <=24.x.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "uuid": "cd97baea-a9bb-470c-8c04-f1d44cd6d7c2",
+    "installId": "43643eab72bc066c834991c2b68ec8250d05773d278c9a634e0a7c13ccd4703b"
+  }
+}

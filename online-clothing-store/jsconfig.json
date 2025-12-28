@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ES2020",
+        "checkJs": false,
+        "esModuleInterop": true,
+        "skipLibCheck": true
+    },
+    "include": ["src/**/*", "server.js"]
+}

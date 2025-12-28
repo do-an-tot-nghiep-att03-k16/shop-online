@@ -1,0 +1,36 @@
+{
+  "kind": "singleType",
+  "collectionName": "settings",
+  "info": {
+    "singularName": "setting",
+    "pluralName": "settings",
+    "displayName": "Setting"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "shop_name": {
+      "type": "string"
+    },
+    "facebook_url": {
+      "type": "string"
+    },
+    "istagram_url": {
+      "type": "string"
+    },
+    "message_url": {
+      "type": "string"
+    },
+    "hotline": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    }
+  }
+}
