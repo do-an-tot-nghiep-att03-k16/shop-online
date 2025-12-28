@@ -35,6 +35,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./online-clothing-store
+          file: ./online-clothing-store/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ env.OWNER }}/online-clothing-store:latest
@@ -44,6 +45,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./frontend-clothing-shop
+          file: ./frontend-clothing-shop/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ env.OWNER }}/frontend-clothing-shop:latest
@@ -53,6 +55,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./my-cms
+          file: ./my-cms/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ env.OWNER }}/my-cms:latest
