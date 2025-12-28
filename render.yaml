@@ -61,11 +61,11 @@ services:
   #     - key: DATABASE_FILENAME
   #       value: .tmp/data.db
 
-  # Redis/KeyValue instance
-  - type: keyvalue
-    name: ocs-redis
-    plan: starter
-    ipAllowList: []  # Allow access from all Render services in this account
+  # Redis/KeyValue instance - created manually in dashboard
+  # - type: keyvalue
+  #   name: ocs-redis
+  #   plan: starter
+  #   ipAllowList: []
 
   # COMMENTED FOR TESTING - n8n
   # - type: web
