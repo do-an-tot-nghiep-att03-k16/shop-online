@@ -70,6 +70,7 @@ services:
   - type: redis
     name: ocs-redis
     plan: starter
+    ipAllowList: []  # Allow access from all Render services in this account
 
   - type: web
     name: ocs-n8n
