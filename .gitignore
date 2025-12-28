@@ -76,3 +76,10 @@ online-clothing-store-backup/
 order-backup/
 product-backup/
 scripts/
+
+# Backup/test folders - do not commit
+backend-fix-backup/
+online-clothing-store-backup/
+order-backup/
+product-backup/
+scripts/
