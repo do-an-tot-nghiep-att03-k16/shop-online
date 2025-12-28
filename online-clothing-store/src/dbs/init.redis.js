@@ -16,17 +16,25 @@ const clients = {
 
 // Create client
 const createClient = (name) => {
-    const client = new Redis({
-        host: REDIS_HOST,
-        port: REDIS_PORT,
-
-        connectTimeout: REDIS_CONNECT_TIMEOUT,
-
-        retryStrategy(times) {
-            if (times > 10) return null
-            return Math.min(times * 100, 3000)
-        },
-    })
+    // Support both REDIS_URL (production) and REDIS_HOST/PORT (local)
+    const redisUrl = process.env.REDIS_URL
+    const client = redisUrl 
+        ? new Redis(redisUrl, {
+            connectTimeout: REDIS_CONNECT_TIMEOUT,
+            retryStrategy(times) {
+                if (times > 10) return null
+                return Math.min(times * 100, 3000)
+            },
+        })
+        : new Redis({
+            host: REDIS_HOST,
+            port: REDIS_PORT,
+            connectTimeout: REDIS_CONNECT_TIMEOUT,
+            retryStrategy(times) {
+                if (times > 10) return null
+                return Math.min(times * 100, 3000)
+            },
+        })
 
     client.on('connect', () => {
         console.log(`${name}: connecting...`)
