@@ -55,20 +55,17 @@ services:
         value: 0.0.0.0
       - key: PORT
         value: 1337
-      # Demo (SQLite) — persisted via attached disk below
+      # Using SQLite (ephemeral - data lost on restart)
+      # For production, use Postgres database instead
       - key: DATABASE_CLIENT
         value: sqlite
       - key: DATABASE_FILENAME
         value: .tmp/data.db
-      # For production, switch to Postgres on Render and set DATABASE_* accordingly
+      # To use Postgres: uncomment below and comment SQLite settings
       # - key: DATABASE_CLIENT
       #   value: postgres
       # - key: DATABASE_URL
       #   sync: false
-    disks:
-      - name: cms-data
-        mountPath: /opt/render/project/src/.tmp
-        sizeGB: 2
 
   - type: redis
     name: ocs-redis
@@ -122,10 +119,8 @@ services:
         value: "true"
       - key: EXECUTIONS_DATA_MAX_AGE
         value: "168"
-    disks:
-      - name: n8n-data
-        mountPath: /home/node/.n8n
-        sizeGB: 5
+    # Note: Persistent disks not available for Docker services on Render
+    # n8n data will be stored in Postgres database (configured above)
 
 databases:
   - name: ocs-n8n-db
