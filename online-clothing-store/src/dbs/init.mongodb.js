@@ -5,7 +5,8 @@ const {
 } = require('../configs/mongodb.config')
 // const { countConnect } = require('../helpers/check.connect')
 
-const connectString = `mongodb://${host}:${port}/${name}`
+// Support both local MongoDB and MongoDB Atlas
+const connectString = process.env.MONGODB_URI || `mongodb://${host}:${port}/${name}`
 
 class Database {
     constructor() {
