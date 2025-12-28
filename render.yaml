@@ -19,11 +19,12 @@ services:
       - key: MONGODB_URI
         # e.g. mongodb+srv://user:pass@cluster0.x.mongodb.net/db?retryWrites=true&w=majority
         sync: false
-      - key: REDIS_URL
-        fromService:
-          name: ocs-redis
-          type: redis
-          property: connectionString
+      # Redis connection - commented for testing
+      # - key: REDIS_URL
+      #   fromService:
+      #     name: ocs-redis
+      #     type: redis
+      #     property: connectionString
       - key: JWT_SECRET
         sync: false
       - key: REFRESH_TOKEN_SECRET
@@ -61,10 +62,12 @@ services:
   #     - key: DATABASE_FILENAME
   #       value: .tmp/data.db
 
-  - type: redis
-    name: ocs-redis
-    plan: starter
-    ipAllowList: []  # Allow access from all Render services in this account
+  # Redis might need to use 'pserv' (private service) instead
+  # Try commenting out Redis for now
+  # - type: redis
+  #   name: ocs-redis
+  #   plan: starter
+  #   ipAllowList: []
 
   # COMMENTED FOR TESTING - n8n
   # - type: web
