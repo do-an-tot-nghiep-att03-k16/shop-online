@@ -40,93 +40,46 @@ services:
       - key: SEPAY_WEBHOOK_SECRET
         sync: false
 
-  - type: web
-    name: ocs-cms
-    env: docker
-    plan: starter
-    image:
-      url: ghcr.io/qingyunne/my-cms:latest
-    autoDeploy: true
-    healthCheckPath: /_health
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: HOST
-        value: 0.0.0.0
-      - key: PORT
-        value: 1337
-      # Using SQLite (ephemeral - data lost on restart)
-      # For production, use Postgres database instead
-      - key: DATABASE_CLIENT
-        value: sqlite
-      - key: DATABASE_FILENAME
-        value: .tmp/data.db
-      # To use Postgres: uncomment below and comment SQLite settings
-      # - key: DATABASE_CLIENT
-      #   value: postgres
-      # - key: DATABASE_URL
-      #   sync: false
+  # COMMENTED FOR TESTING - CMS
+  # - type: web
+  #   name: ocs-cms
+  #   env: docker
+  #   plan: starter
+  #   image:
+  #     url: ghcr.io/qingyunne/my-cms:latest
+  #   autoDeploy: true
+  #   healthCheckPath: /_health
+  #   envVars:
+  #     - key: NODE_ENV
+  #       value: production
+  #     - key: HOST
+  #       value: 0.0.0.0
+  #     - key: PORT
+  #       value: 1337
+  #     - key: DATABASE_CLIENT
+  #       value: sqlite
+  #     - key: DATABASE_FILENAME
+  #       value: .tmp/data.db
 
   - type: redis
     name: ocs-redis
     plan: starter
     ipAllowList: []  # Allow access from all Render services in this account
 
-  - type: web
-    name: ocs-n8n
-    env: docker
-    plan: starter
-    image:
-      url: n8nio/n8n:latest
-    autoDeploy: false
-    healthCheckPath: /healthz
-    envVars:
-      - key: N8N_HOST
-        # Set to your n8n domain e.g. n8n.yourdomain.com
-        sync: false
-      - key: N8N_PORT
-        value: 5678
-      - key: N8N_PROTOCOL
-        value: https
-      - key: WEBHOOK_URL
-        # Set to https://n8n.yourdomain.com/
-        sync: false
-      - key: N8N_ENCRYPTION_KEY
-        # Generate: openssl rand -base64 32
-        sync: false
-      - key: DB_TYPE
-        value: postgresdb
-      - key: DB_POSTGRESDB_HOST
-        fromDatabase:
-          name: ocs-n8n-db
-          property: host
-      - key: DB_POSTGRESDB_PORT
-        fromDatabase:
-          name: ocs-n8n-db
-          property: port
-      - key: DB_POSTGRESDB_DATABASE
-        fromDatabase:
-          name: ocs-n8n-db
-          property: database
-      - key: DB_POSTGRESDB_USER
-        fromDatabase:
-          name: ocs-n8n-db
-          property: user
-      - key: DB_POSTGRESDB_PASSWORD
-        fromDatabase:
-          name: ocs-n8n-db
-          property: password
-      - key: EXECUTIONS_DATA_PRUNE
-        value: "true"
-      - key: EXECUTIONS_DATA_MAX_AGE
-        value: "168"
-    # Note: Persistent disks not available for Docker services on Render
-    # n8n data will be stored in Postgres database (configured above)
+  # COMMENTED FOR TESTING - n8n
+  # - type: web
+  #   name: ocs-n8n
+  #   env: docker
+  #   plan: starter
+  #   image:
+  #     url: n8nio/n8n:latest
+  #   autoDeploy: false
+  #   healthCheckPath: /healthz
 
-databases:
-  - name: ocs-n8n-db
-    databaseName: n8n
-    plan: starter
+# databases:
+#   - name: ocs-n8n-db
+#     databaseName: n8n
+#     plan: starter
 
 # Notes:
 # - Ensure your GHCR images are public, or configure registry access in Render.
