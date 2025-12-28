@@ -8,7 +8,7 @@ services:
     plan: starter
     # Use public images on GHCR or configure registry credentials in the dashboard
     image:
-      url: ghcr.io/${RENDER_GITHUB_OWNER:-your-github-owner}/online-clothing-store:latest
+      url: ghcr.io/qingyunne/online-clothing-store:latest
     autoDeploy: true
     healthCheckPath: /v1/api/jobs/health
     envVars:
@@ -45,7 +45,7 @@ services:
     env: docker
     plan: starter
     image:
-      url: ghcr.io/${RENDER_GITHUB_OWNER:-your-github-owner}/my-cms:latest
+      url: ghcr.io/qingyunne/my-cms:latest
     autoDeploy: true
     healthCheckPath: /_health
     envVars:
