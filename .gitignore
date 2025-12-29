@@ -45,6 +45,7 @@ Thumbs.db
 tmp/
 temp/
 *.tmp
+tmp_rovodev_*
 
 # Backups (do not commit backups to git)
 backups/
@@ -83,3 +84,5 @@ online-clothing-store-backup/
 order-backup/
 product-backup/
 scripts/
+tmp_rovodev_cms_backup/
+tmp_rovodev_n8n_backup/
