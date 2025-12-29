@@ -6,7 +6,7 @@ export default ({ env }) => ({
         salt: env('API_TOKEN_SALT'),
     },
     transfer: {
-        enabled: true
+        enabled: true,
         token: {
             salt: env('TRANSFER_TOKEN_SALT'),
         },

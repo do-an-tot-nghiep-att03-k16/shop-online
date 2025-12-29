@@ -1,0 +1,2303 @@
+{
+  "name": "Chatbot Ai",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatbot",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        -256
+      ],
+      "id": "e1a9ddbe-f245-4167-b116-7f47b44df159",
+      "name": "Webhook",
+      "webhookId": "7d28231f-0083-4376-81ed-62b4e6860d3c"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=metadata: {{JSON.stringify($json.response)}}\nuserMessage: {{ $json.userMessage }}\nsessionId: {{ $json.sessionId }}\nsystemContext: {{ $json.systemContext }}\nintent: {{ $json.output.intent }} || {{ $json.response.track_orders }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Bạn là AI Assistant chính thức của Aristia Shop – cửa hàng thời trang online.\n\n- Không tự ý bịa đặt thông tin\n- nếu metadata là object có field error thì reply cho phù hợp, cho biết tại sao có lỗi này một cách đơn giản và không lộ quá nhiều thông tin backend\n- nếu có phần intent trong prompt và intent là general thì sử dụng tool google sheet xem có thông tin phù hợp không\n- nếu intent là general và câu hỏi liên quan đến tìm kiếm sản phẩm, mã giảm giá hay là đơn hàng thì yêu cầu người dùng yêu cầu chi tiết hơn, nếu như không có intent thì làm ơn đừng hỏi thêm nhiều làm gì\n- những yêu cầu chi tiết hơn đó được đề cập trong tool google sheet, nếu như userMessage đã đề cập đến thông tin nào đó thì không hỏi lại thông tin đó (ví dụ tuần trước, tuần sau, hôm nay, hôm qua,... )\n- nếu metadata là user chưa login hay giống vậy thì thông báo user phải login để thực hiện yêu cầu\n- nếu không thì xin lỗi vì không hỗ trợ được một cách lịch sự\n- metadata: trả về nguyên phần metadata nhận được và không thay đổi nội dung nếu trong metadata có nội dung\n- nếu metadata là có message là không tìm thấy đơn hàng phù hợp thì thông báo như vậy với khách hàng\n- nếu metadata là {isValid: false } thì dữ liệu đầu vào không hợp lệ, cần hỏi thêm thông tin theo google sheet như đã gợi ý\n\n\n=====================\nFORMAT TRẢ LỜI\n=====================\n- Trình bày rõ ràng\n- Dùng emoji vừa phải 😊🛍️📦\n- Tập trung vào lợi ích cho khách hàng\n- nếu metadata là có message là không tìm thấy đơn hàng phù hợp thì thông báo như vậy với khách hàng\n- Trả lời reply phù hợp với userMessage\n- metadata đang là string parse thành json\n- không gửi link ảnh trong reply\n- trả lời dựa theo metadata và tham chiếu vào userMessage\n- phải trả lời đúng đủ, các field trong output parser\n- track_orders thì chỉ cần thông tin thống kê thôi, không cần chi tiết, không cần hỏi lại\n- nếu metadata: isValid\nQUY TẮC XỬ LÝ METADATA (BẮT BUỘC):\n- Nếu metadata chứa dữ liệu (ví dụ: track_orders),\n  coi đây là kết quả đã được backend xử lý đúng theo userMessage.\n- Không được hỏi thêm thông tin thời gian, điều kiện, hay tham số.\n- Không được nghi ngờ tính đầy đủ của metadata.\n- Chỉ diễn giải dữ liệu có trong metadata theo hướng có lợi cho khách hàng.",
+          "returnIntermediateSteps": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        3424,
+        -112
+      ],
+      "id": "186d3946-8483-43a2-a63d-f22770423e9c",
+      "name": "AI Agent",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log('🔍 Full input data:', JSON.stringify($input.all(), null, 2));\n\n// Cách 1: Thử lấy từ $json trực tiếp\nlet requestData = $json.body;\n\nif (!requestData || !requestData.message) {\n    requestData = $json.body || $json;\n    console.log('📦 From body:', JSON.stringify(requestData, null, 2));\n}\n\nif (!requestData || !requestData.message) {\n    requestData = $json.query || $json.params || {};\n    console.log('🔗 From query/params:', JSON.stringify(requestData, null, 2));\n}\n\nconst message = requestData.message || 'Xin chào (no message received)';\nconst sessionId = requestData.sessionId || `session_${Date.now()}`;\nconst context = requestData.userContext || {};\n\n// Tạo system context\nlet systemContext = '';\nif (context.currentPage) {\n    systemContext += `User đang ở trang: ${context.currentPage}. `;\n}\nif (context.isLoggedIn) {\n    systemContext += `User đã đăng nhập. `;\n}\nif (context.cartItems && context.cartItems > 0) {\n    systemContext += `User có ${context.cartItems} sản phẩm trong giỏ hàng. `;\n}\nreturn [\n  {\n    json: {\n      userMessage: message,\n      sessionId: sessionId,\n      systemContext: systemContext,\n      timestamp: new Date().toISOString(),\n      authToken: context.authToken ? context.authToken : null,\n      isLoggedIn: context.isLoggedIn\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -256
+      ],
+      "id": "6e44f613-3c66-4ec6-a1ac-be3cf8ad4c96",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{$json.sessionId}}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        3616,
+        176
+      ],
+      "id": "5a799409-b017-4023-9f30-9e228bd1e9b4",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "LXJBynptb2Z1kLAU",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "enableResponseOutput": true,
+        "respondWith": "json",
+        "responseBody": "={{ {\n  success: true,\n  sessionId: $json.sessionId,\n  reply: $json.output.reply,\n  metadata: $json.output.metadata,\n  model: 'Gemini',\n  timestamp: new Date().toISOString()\n} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        4176,
+        -192
+      ],
+      "id": "3b9b5513-5bbf-4009-9f6f-995419198f86",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-safeguard-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        3424,
+        144
+      ],
+      "id": "9bc1573b-f552-43a9-a4e3-b8068158a4d2",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "nZhDwk0ivqa0lC7b",
+          "name": "Groq account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        304,
+        32
+      ],
+      "id": "f2e01db1-9412-4424-a064-8164df56c267",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "WqiOJ8nUcHwAmBS2",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.output.intent}}",
+                    "rightValue": "=product_search",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a9eee514-a16a-4286-a5cf-41d8da4414c4"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1e9d90e6-9d88-4f01-8eae-650604429a97",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ef43e7c0-5990-4136-b3a8-f5446a41982f",
+                    "leftValue": "={{ $json.output.intent }}",
+                    "rightValue": "coupon",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "327e8870-08bf-4e0b-99c0-2cf56306a9eb",
+                    "leftValue": "={{$json.output.intent}}",
+                    "rightValue": "general",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1056,
+        -368
+      ],
+      "id": "2bf2b973-8e2f-4115-83ec-c39603b08796",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Message: {{$json.userMessage}}\nuserMessage: {{ $json.userMessage }}\nsessionId: {{ $json.sessionId }}\nsystemContext: {{ $json.systemContext }}\nauthToken: {{ $json.authToken }}\ntimestamp: {{ $json.timestamp }}\nisLoggedIn: {{ $json.isLoggedIn }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Phân tích câu hỏi của người dùng.\nChỉ trả về JSON, KHÔNG thêm chữ nào khác. \ncác field, userMessage, sessionId, systemContext, authToken, isLoggedIn giữ nguyên, không thay đổi\n\nNếu như nội dung liên quan đến product_search, order, coupon mà không có nội dung đủ thì cũng tính là general\nVí dụ: product_search không có keyword,\norder không có nêu rõ actions là cancel or track\ntheo dõi, xem đơn hàng thì là track\n\nnếu như userMessage là câu khẳng định hay phủ định thì phải xem lại nội dung trò chuyện để xác định output\n\nKeyword product: 1.Không bao gồm size, color và cả gender.\nKeyword order: Không được để trống hoặc \"\" 1. \"all\" 2. mã đơn hàng nếu userMessage có đề cập\ncolor: màu đỏ, đen, trắng, be,.. tùy người dùng\nGender quy về 3 sự lựa chọn: male, female, unisex\nSize quy về các sự lựa chọn: XS, S, M, L, XL, XXL, 3XL\ndate_range: các field con lưu dưới dạng isostring\n\"status\": \"all\", 'pending', 'confirmed', 'processing', 'shipping', 'delivered', 'cancelled', 'returned'\n\"actions\" có 3 là \"track_order\" và \"cancel_order\" \"return_order\"\nThí dụ thời gian của user message là tuần này, tháng này thì phải tính  cả thời  điểm timestamp\nthời gian trong date_range tính toán và suy luận từ timestamp\nnếu hỏi mã giảm giá thì là coupon\nNếu userMessage có liên quan đến intent như product_search, coupon, order nhưng không có đủ thông tin thì để là general\n\nSchema:, {\n  \"intent\": \"product_search | order | coupon | general\",\n  \"keyword\": \"\",\n  \"filters\": {\n     \"color: \"\"\n    \"gender\": \"\",\n    \"size\": \"\"\n  }\n\"actions\":  {\n    \"cancel_order\": false\n    \"track_order\": false\n  }, (chỉ dành cho order\n \"userMesssage\": \"\",\n \"sessionId\": \"\",\n\"systemContext\": \"\"\n \"authToken: \"\"\n}\nnếu intent là order thì filters sẽ là {\"status\": \"\",\n    \"date_range\": {\"from\": \"\", \"to\": \"\"}} và có thêm \"actions\":  {\n    \"cancel_order\": false\n    \"track_order\": false\n  },\nnhắc lại là intent là order thì keyword là \"all\" hoặc mã đơn hàng nếu có đề cập, không được để trống\naction phải là track(theo dõi, xem thông tin) và cancel (hủy) nếu không có cả 2 actions thì intent là general\n-authToken phải giữ nguyên, không được rút ngắn lại bằng bất kỳ cách nào\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        352,
+        -384
+      ],
+      "id": "fdc3e09c-2eb3-4da7-a7e6-d4b2d30d25bb",
+      "name": "analysist request"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n    \"type\": \"object\",\n    \"properties\": {\n        \"intent\": {\n            \"type\": \"string\"\n        },\n        \"keyword\": {\n            \"type\": \"string\"\n        },\n        \"filters\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"gender\": {\n                    \"type\": \"string\"\n                },\n                \"size\": {\n                    \"type\": \"string\"\n                },\n                \"color\": {\n                    \"type\": \"string\"\n                },\n                \"status\": {\n                    \"type\": \"string\"\n                },\n                \"date_range\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                        \"from\": {\n                            \"type\": \"string\"\n                        },\n                        \"to\": {\n                            \"type\": \"string\"\n                        }\n                    }\n                }\n            }\n        },\n        \"actions\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"track_order\": {\n                    \"type\": \"boolean\"\n                },\n                \"cancel_order\": {\n                    \"type\": \"boolean\"\n                },\n                \"return_order\": {\n                    \"type\": \"boolean\"\n                }\n            }\n        },\n        \"userMessage\": {\n            \"type\": \"string\"\n        },\n        \"sessionId\": {\n            \"type\": \"string\"\n        },\n        \"systemContext\": {\n            \"type\": \"string\"\n        },\n        \"authToken\": {\n            \"type\": \"string\"\n        },\n        \"isLoggedIn\": {\n            \"type\": \"boolean\"\n        },\n        \"required\": [\n            \"intent\",\n            \"keyword\",\n            \"userMessage\",\n            \"sessionId\"\n        ]\n    }\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        -16
+      ],
+      "id": "e0bcf876-7b69-4dd4-93e6-af6efbf1639d",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3055/v1/api/product/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.output.keyword }}"
+            },
+            {
+              "name": "page",
+              "value": "1"
+            },
+            {
+              "name": "limit",
+              "value": "10"
+            },
+            {
+              "name": "gender",
+              "value": "={{$json.output.filters.gender}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "eb3438436973dc8412b4d50bcdb64cb1c655f484a5d7418ec3d50218f290c3ab8ee0d6c33fc39385d1fd65fa518d21a6e56d140ffe108d82eff7a4fbb1d348e7"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1440,
+        -928
+      ],
+      "id": "25fd31ae-932a-41ab-81e1-69edfed5a74f",
+      "name": "HTTP Request",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const products = $json.metadata.products\nconst colorArray = $json.output.colors\nconst sizeFilter = $json.output.size\n\nif ($json.error) return {response: {error: $json.error.message}}\n\nconst simplified = products.map(p => {\n  const validVariants = p.variants\n    .filter(v => v.stock_quantity > 0)                // chỉ lấy variants còn hàng\n    .filter(v => colorArray ? colorArray.includes(v.color) : true)         // lọc theo màu\n    .filter(v => sizeFilter ? v.size === sizeFilter : true) // nếu có sizeFilter thì mới filter size\n    .map(v => ({\n      size: v.size,\n      color: v.color,\n      stock_quantity: v.stock_quantity\n    }));\n\n  if (validVariants.length === 0) return null; // loại sản phẩm không có variant hợp lệ\n\n  const firstVariant = validVariants[0];\n\n  // Lấy ảnh tương ứng với màu của variant đầu tiên\n  const colorImage = p.color_images.find(ci => ci.color === firstVariant.color);\n  const image = colorImage ? colorImage.images[0].thumbnail : null;\n\n  return {\n    _id: p._id,\n    name: p.name,\n    base_price: p.base_price,\n    discount_percent: p.discount_percent,\n    variants: validVariants,\n    slug: p.slug,\n    image\n  };\n}).filter(p => p && p.variants.length > 0)\n.slice(0,3)// loại sản phẩm không còn variant hợp lệ\nreturn  {\n  response: {products: simplified}\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3056,
+        -352
+      ],
+      "id": "80ce32c4-33e3-4fba-ad1e-27b393954e0d",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0d3219c4-97d8-42c3-9763-da57b0c090c5",
+              "leftValue": "={{ $json.output.filters.color }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c0dba0fb-b131-43a0-962f-fa28e57444da",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1936,
+        -1248
+      ],
+      "id": "b367a32b-55eb-41b1-b70d-966745462aa8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Query: {{$json.query}}\nSet colors: {{ $json.colors }}\nSize: {{ $json.size }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "chọn những màu phù hợp với query trong set colors\nVí dụ: query: đỏ -> chọn đỏ đậm, đỏ tía, đỏ...\nquery: xanh -> xanh navy, xanh nhạt, xanh lơ, xanh...\nsize giữ nguyên"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2672,
+        -1280
+      ],
+      "id": "5c67cb4f-1319-42eb-97ea-d9298ad4f9df",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2672,
+        -1008
+      ],
+      "id": "c50ea728-70e0-4adc-985c-27abdcd8ea5a",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "nZhDwk0ivqa0lC7b",
+          "name": "Groq account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nif ($json.error) return $json.error\n\nconst products = $json.metadata.products\nconst query = $json.output.filters.color\nconst size = $json.output.filters.size\n\n// Tạo Set để loại trùng màu\nconst colorSet = new Set();\n// Duyệt qua từng product và từng variant\nproducts.forEach(p => {\n  if (p.variants && Array.isArray(p.variants)) {\n    p.variants.forEach(v => {\n      if (v.color) {\n        colorSet.add(v.color);\n      }\n    });\n  }\n});\n\n// Chuyển Set thành mảng\nconst colors = Array.from(colorSet);\n\n// Trả về output\nreturn {\n  colors,\n  query,\n  size\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        -1056
+      ],
+      "id": "65f9e3e7-9ea7-4354-8b44-fe86b8847132",
+      "name": "filter set color"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"colors\": {\n          \"type\" : \"array\"\n        },\n        \"size\" : {\n          \"type\": \"string\"\n        }\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2832,
+        -1008
+      ],
+      "id": "4ccf37b2-d8b2-4e16-810b-455d7140ff91",
+      "name": "parser array colors"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3152,
+        -832
+      ],
+      "id": "ffc03077-b970-4e88-95a3-e730ff38ef70",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1632,
+        -1200
+      ],
+      "id": "b5f501e7-1113-4402-8b76-2981ab262a6e",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3232,
+        128
+      ],
+      "id": "c051cdf1-db97-4e73-9156-d4e842232082",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n    \"type\": \"object\",\n    \"properties\": {\n        \"reply\": {\"type\": \"string\"},\n        \"metadata\": {\"type\": \"object\"},\n        \"sessionId\": {\"type\": \"string\"}\n    }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3744,
+        240
+      ],
+      "id": "0dd5e0f1-da13-43d0-a6b0-7b223739ad8c",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.output.url_request}}order/my-orders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "={{$json.output.filters.status}}"
+            },
+            {
+              "name": "page",
+              "value": "1"
+            },
+            {
+              "name": "limit",
+              "value": "100"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{$json.output.x_api_key}}"
+            },
+            {
+              "name": "x-client-id",
+              "value": "69390a192a99b9129787a5b9"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2208,
+        -736
+      ],
+      "id": "83b93c4d-17d0-4d7f-92b6-5052efb04496",
+      "name": "HTTP Request1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "vS9ouyUSw3CABgO5",
+          "name": "Bearer Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "$json.output.url_request = 'http://host.docker.internal:3055/v1/api/'\n$json.output.x_api_key = 'eb3438436973dc8412b4d50bcdb64cb1c655f484a5d7418ec3d50218f290c3ab8ee0d6c33fc39385d1fd65fa518d21a6e56d140ffe108d82eff7a4fbb1d348e7'\nif ($json.output.filters && $json.output.filters.status === 'all') delete $json.output.filters.status\nreturn $json;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -448
+      ],
+      "id": "442d43ab-4ed1-4bc2-b655-b7576e427012",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\nif ($json.error) return {response: {error: $json.error.message}}\nconst orders = $json.metadata?.orders || []\nconst statusFilter = $json.output.filters?.status || null\nconst dateRange = $json.output.filters?.date_range || {}\n\nconst from = dateRange.from ? new Date(dateRange.from) : null\nconst to = dateRange.to ? new Date(dateRange.to) : null\nconst result = orders\n  .filter(order => {\n    if (!statusFilter || statusFilter === 'all') return true\n  return order.status === statusFilter\n  })\n  .filter(order => {\n    const createdAt = new Date(order.createdAt);\n\n  if (from && createdAt < from) return false;\n  if (to && createdAt > to) return false;\n\n  return true;\n  })\n  .reduce(\n  (acc, order) => {\n    const status = order.status;\n    const amount = order.total || 0;\n\n    acc.total_orders++;\n    acc.total_amount += amount;\n\n    if (!acc.by_status[status]) {\n      acc.by_status[status] = { count: 0, amount: 0 };\n    }\n\n    acc.by_status[status].count++;\n    acc.by_status[status].amount += amount;\n\n    return acc;\n  },\n  {\n    total_orders: 0,\n    total_amount: 0,\n    by_status: {}\n  }\n)\n\nreturn {response: {\n  track_orders: result\n}}\n// return { result: $json.metadata.orders[0].createdAt }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2656,
+        -608
+      ],
+      "id": "04647a5f-d861-46ca-9632-d82ca69a1453",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.output.actions.track_order}}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "b642fba4-dc05-4fce-8c08-e435bedbb06e"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1b168402-4b74-4aea-8647-ec841ba6f2fa",
+                    "leftValue": "={{ $json.output.actions.cancel_order }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "585c8275-830f-4083-8a4e-069e39d82a81",
+                    "leftValue": "={{ $json.output.actions.return_order }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1264,
+        -624
+      ],
+      "id": "05f9974d-828b-4f6f-bd19-dd53b6603a2f",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0deb49f6-716b-4db2-8b26-0ab564ebfc32",
+              "leftValue": "={{ $json.output.keyword }}",
+              "rightValue": "all",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1728,
+        -720
+      ],
+      "id": "e5e88c59-2d61-4259-bb6f-4c14d6372a55",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d9116a96-c286-41cb-98b5-680f6b9d7fbb",
+              "name": "output.filters",
+              "value": "={{ $json.output.filters }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2208,
+        -832
+      ],
+      "id": "e04337f1-46d6-48e2-873c-136f3c47189a",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2400,
+        -704
+      ],
+      "id": "9e078a4e-4d39-431b-9f4a-a53984660e9a",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.output.url_request}}order/number/{{$json.output.keyword}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{$json.output.x_api_key}}"
+            },
+            {
+              "name": "x-client-id",
+              "value": "69390a192a99b9129787a5b9"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2032,
+        -544
+      ],
+      "id": "d1da82f7-81c2-4f34-9df7-05773e32ea76",
+      "name": "HTTP Request3",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "vS9ouyUSw3CABgO5",
+          "name": "Bearer Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nif ($json.error) return {response: {error: $json.error.message}}\n\nconst order = $json.metadata\n\nconst track_order = {\n  _id: order._id,\n  address: order.shipping_address.full_address,\n  order_number: order.order_number,\n  payment_method: order.payment_method,\n  payment_status: order.payment_status,\n  total: order.total,\n  status: order.status,\n  estimated_delivery: order.estimated_delivery,\n  items: order.items.map(item => {\n    return {\n      _id: item.product_id.id,\n      name: item.product_name,\n      slug: item.product_slug,\n      quantity: item.quantity,\n      subtotal: item.subtotal\n    }\n  })\n}\n\nreturn {\n  response: {track_order}\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2496,
+        -448
+      ],
+      "id": "33c95776-c7db-4f1b-bf50-b57fd0a9c035",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a908968e-fdb8-4722-b692-68188ec1ad42",
+              "leftValue": "={{$json.output.keyword}}",
+              "rightValue": "all",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1696,
+        -512
+      ],
+      "id": "a2cf22cf-6b9a-4ac9-aa45-1c95012afed5",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.output.url_request}}order/my-orders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "page",
+              "value": "1"
+            },
+            {
+              "name": "limit",
+              "value": "100"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{$json.output.x_api_key}}"
+            },
+            {
+              "name": "x-client-id",
+              "value": "69390a192a99b9129787a5b9"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2112,
+        -416
+      ],
+      "id": "5066c309-a6df-41e5-8def-c4af390b33a8",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "vS9ouyUSw3CABgO5",
+          "name": "Bearer Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dc784572-044a-47b0-bccf-03f5f445d026",
+              "name": "output.filters",
+              "value": "={{ $json.output.filters }}",
+              "type": "object"
+            },
+            {
+              "id": "a02908fd-0777-45f4-aa15-2b1e00be1572",
+              "name": "output.url_request",
+              "value": "={{ $json.output.url_request }}",
+              "type": "string"
+            },
+            {
+              "id": "2c15d125-3f4c-46cc-a67e-f423d359ca12",
+              "name": "output.x_api_key",
+              "value": "={{ $json.output.x_api_key }}",
+              "type": "string"
+            },
+            {
+              "id": "dba89af3-1537-4e32-b9d3-e01675daf09b",
+              "name": "output.authToken",
+              "value": "={{ $json.output.authToken }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1968,
+        -320
+      ],
+      "id": "72e7e3e9-fc54-40c4-8933-662d93e8b2eb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2304,
+        -336
+      ],
+      "id": "d93e6ce4-114f-472f-82bf-f862b8d7b6ca",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "tableName": "n8n_chat_resolove_logs"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        -128
+      ],
+      "id": "dffb5177-04c9-40d4-acb7-40b0608507e3",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "LXJBynptb2Z1kLAU",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{$json.output.url_request}}order/bulk/cancel",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "={{$json.output.filters.status}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{$json.output.x_api_key}}"
+            },
+            {
+              "name": "x-client-id",
+              "value": "69390a192a99b9129787a5b9"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "orderIds",
+              "value": "={{$json.result}}"
+            },
+            {
+              "name": "reason",
+              "value": "Bulk cancellation by AI"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2848,
+        -128
+      ],
+      "id": "3bef07b7-c63c-4cd0-8e58-75bb2ee4b8c0",
+      "name": "HTTP Request4",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "vS9ouyUSw3CABgO5",
+          "name": "Bearer Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nif ($json.error) return {response: {error: $json.error.message}}\nreturn {response : {cancel_orders: $json.metadata}}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2992,
+        -16
+      ],
+      "id": "c0dd5ffc-db97-4100-8163-f9bde393aadc",
+      "name": "Code in JavaScript6"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{$json.output.url_request}}order/{{$json.result}}/cancel",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{$json.output.x_api_key}}"
+            },
+            {
+              "name": "x-client-id",
+              "value": "69390a192a99b9129787a5b9"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "reason",
+              "value": "được hủy bởi ai"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2688,
+        272
+      ],
+      "id": "6b425172-1473-41a5-a70a-da7f60f52058",
+      "name": "HTTP Request5",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "vS9ouyUSw3CABgO5",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{$json.output.url_request}}order/number/{{$json.output.keyword}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{$json.output.x_api_key}}"
+            },
+            {
+              "name": "x-client-id",
+              "value": "69390a192a99b9129787a5b9"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1968,
+        -208
+      ],
+      "id": "e7ef9754-7325-48f9-9de7-4beb5db0e9be",
+      "name": "HTTP Request6",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "vS9ouyUSw3CABgO5",
+          "name": "Bearer Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nif ($json.error) return {result: {error: $json.error.message}}\nconst status = $json.metadata.status\nconst statusFilter = ['pending', 'confirmed']\nreturn {\n  result: $json.metadata._id,\n  isValid: statusFilter.includes(status)\n  }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        -160
+      ],
+      "id": "adcd095f-f94d-4367-800a-0f29c017dc05",
+      "name": "Code in JavaScript7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "644b6cd9-2de3-4255-b1bc-a9026368f3bf",
+              "leftValue": "={{$json.isValid}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2320,
+        -128
+      ],
+      "id": "82492cec-be7d-48f0-8de3-79f281837aa6",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "20366dfe-4145-480a-bd5a-b62e7baa4303",
+              "name": "output.authToken",
+              "value": "={{ $json.output.authToken }}",
+              "type": "string"
+            },
+            {
+              "id": "5097a5d6-82d3-4077-a0eb-433dcb7c17ce",
+              "name": "output.url_request",
+              "value": "={{ $json.output.url_request }}",
+              "type": "string"
+            },
+            {
+              "id": "eafba633-b87e-468b-a099-a4075ab7c33f",
+              "name": "output.x_api_key",
+              "value": "={{ $json.output.x_api_key }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1776,
+        -112
+      ],
+      "id": "7668977c-152a-4d7d-95c5-d07b7b7afba9",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2464,
+        256
+      ],
+      "id": "a6e071ec-8ffe-4e57-bcae-746a99ae6600",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "jsCode": "if ($json?.result?.error) return {response: $json.result}\nif ($json.isValid && $json.isValid === false) return {response: {message: 'Không tìm thấy đơn hàng hợp lệ'}}\nconst result = $json?.metadata?.order\nconst cancel_order = {\n    _id: result?._id,\n    order_number: result?.order_number,\n    status: result?.status,\n    total: result?.total\n    \n  }\nif ($json.status && $json.status === 200 || $json.status === 304) return {\n  \n  response: {\n    cancel_order\n  }\n}\n\nreturn {response: {isValid: false}}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2864,
+        256
+      ],
+      "id": "144061a2-c74c-471d-b2e4-ba82ad5192e6",
+      "name": "Code in JavaScript8"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.output.url_request}}coupon/active",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $json.output.x_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1712,
+        144
+      ],
+      "id": "2bf7b27e-3f38-46f3-8080-b9ac076d4d5c",
+      "name": "HTTP Request7",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nif ($json.error) return {response: {error: $json.error.message}}\nreturn {response: $json.metadata}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        144
+      ],
+      "id": "307342b7-907d-4240-99aa-a21c869035b2",
+      "name": "Code in JavaScript9"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Xem thông tin của shop khi intent là general",
+        "documentId": {
+          "__rl": true,
+          "value": "1g3zE5haVqxeR4HDuiriw_0ZBuIfh4RQQNu4opOflsKg",
+          "mode": "list",
+          "cachedResultName": "Shop infomation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1g3zE5haVqxeR4HDuiriw_0ZBuIfh4RQQNu4opOflsKg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "combineFilters": "OR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        3920,
+        80
+      ],
+      "id": "7cc1c25c-614f-47da-aebf-ec71b728ab8c",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "notesInFlow": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "fFqXliBk4xy0nIxK",
+          "name": "google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n$json.response = {}\n\nreturn $json"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        -160
+      ],
+      "id": "32693cab-32cf-4f4d-96fc-bc6c507ac85a",
+      "name": "Code in JavaScript10"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c9882644-7d5e-41b2-beb6-d89e0beb49bd",
+              "leftValue": "={{ $json.output.isLoggedIn }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1936,
+        -816
+      ],
+      "id": "6a47a246-2f34-4553-b1ec-e0e692b2f041",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nreturn {response: {message: \"user chưa login\"}}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        -560
+      ],
+      "id": "9d0ff931-5d88-4d21-a582-68962ab81292",
+      "name": "Code in JavaScript11"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "09cbf674-ea28-49b8-9035-18df7b29c636",
+              "leftValue": "={{ $json.result }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2608,
+        -192
+      ],
+      "id": "eccab84c-05df-45be-8256-669205a0afea",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\nif ($json.error) return $json.error\nconst orders = $json.metadata?.orders || []\nconst statusFilter = ['pending', 'confirmed']\nconst dateRange = $json.output.filters?.date_range || {}\n\nconst from = dateRange.from ? new Date(dateRange.from) : null\nconst to = dateRange.to ? new Date(dateRange.to) : null\nconst result = orders\n  .filter(order => statusFilter.includes(order.status) \n  )\n  .filter(order => {\n    const createdAt = new Date(order.createdAt);\n\n  if (from && createdAt < from) return false;\n  if (to && createdAt > to) return false;\n\n  return true;\n  }).map(order => order._id)\n\n\nreturn {\n  result,\n       output: $json.output\n       }\n// return { result: $json.metadata.orders[0].createdAt }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        -240
+      ],
+      "id": "8a5f7347-dc2e-4fd7-8e5b-f2f02a570a17",
+      "name": "Code in JavaScript5",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nreturn {response: {message: 'Không tìm thấy đơn hàng phù hợp'}}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        48
+      ],
+      "id": "610760c0-d655-4ee0-b27f-0457006e3fdb",
+      "name": "Code in JavaScript12"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0d88a002-08f0-438d-8f7c-67ff7730a406",
+              "leftValue": "={{$json.output.keyword}}",
+              "rightValue": "all",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1440,
+        -384
+      ],
+      "id": "c7b573cb-55e2-4317-89a1-bc190340c6ba",
+      "name": "If6"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mã đơn hàng: {{ $json.output.keyword }}\nsessionId: {{ $json.output.sessionId }}",
+        "options": {
+          "systemMessage": "Hãy giúp tôi gửi email cho admin khi người dùng có nhu cầu hủy đơn hàng, gồm mã đơn hàng và session id của cuộc trò chuyện"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1792,
+        544
+      ],
+      "id": "ac09548f-2df0-4b4a-af87-802bb8757a3b",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "sendTo": "qingyunruan1605@gmail.com",
+        "subject": "Hoàn trả hàng",
+        "message": "={{$fromAI('message', 'message muốn gửi tới admin', 'string')}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        2016,
+        784
+      ],
+      "id": "3f9c2ae0-0e94-4dc5-a90f-52c49f4aba75",
+      "name": "Send a message in Gmail",
+      "webhookId": "6d0befcd-d429-4e82-aacd-c1962f48b733",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "e0YzQesK3aL0P4li",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        784
+      ],
+      "id": "cf4b545a-5b44-431c-9eed-9df907ef9dba",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "WqiOJ8nUcHwAmBS2",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7c3a2a8c-312a-46bd-bb1a-f763f4362e32",
+              "name": "response",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2368,
+        560
+      ],
+      "id": "65f00575-fda9-4489-b499-b5a2644f6a0a",
+      "name": "Edit Fields3"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "analysist request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "analysist request",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "analysist request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "analysist request",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "filter set color",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter set color": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parser array colors": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "analysist request",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript6": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request6": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript7": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request7": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript9": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript8": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript10": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript11": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript12": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If6": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {},
+  "activeVersionId": "eb497f36-8923-4232-b302-faa8abbe8e5f",
+  "versionCounter": 582,
+  "triggerCount": 1,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2025-12-13T04:22:13.849Z",
+      "createdAt": "2025-12-13T04:22:13.849Z",
+      "role": "workflow:owner",
+      "workflowId": "LE9N6s8UIE5IKd1t",
+      "projectId": "cKhFBSqv4aEXJDP9",
+      "project": {
+        "updatedAt": "2025-12-13T03:31:22.366Z",
+        "createdAt": "2025-12-13T03:28:02.890Z",
+        "id": "cKhFBSqv4aEXJDP9",
+        "name": "Van Nguyen <qingyunruan1605@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null
+      }
+    }
+  ]
+}
