@@ -1,5 +1,16 @@
 // services/blogService.js
-import { strapiClient } from '../config/strapiClient'
+import axios from 'axios'
+import envConfig from '../config/env'
+
+// Sử dụng cmsClient để nhất quán với các service khác
+const CMS_URL = envConfig.API_STRAPI_URL.replace(/\/api$/, '');
+const cmsClient = axios.create({
+    baseURL: `${CMS_URL}/api`,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+})
 
 const blogService = {
     // Get all blog posts with pagination and advanced sorting
@@ -35,12 +46,12 @@ const blogService = {
             queryParams['filters[category][slug][$eq]'] = params.category
         }
 
-        return strapiClient.get('/blogs', { params: queryParams })
+        return cmsClient.get('/blogs', { params: queryParams })
     },
 
     // Get single blog by slug - populate everything for detail view
     getBlogBySlug: (slug) => {
-        return strapiClient.get('/blogs', {
+        return cmsClient.get('/blogs', {
             params: {
                 'filters[slug][$eq]': slug,
                 // Use populate=* for blog detail to get all relations and content
@@ -73,12 +84,12 @@ const blogService = {
             queryParams['sort[1]'] = 'title:asc'
         }
 
-        return strapiClient.get('/blogs', { params: queryParams })
+        return cmsClient.get('/blogs', { params: queryParams })
     },
 
     // Get blog categories - no population needed
     getCategories: () => {
-        return strapiClient.get('/blog-categories', {
+        return cmsClient.get('/blog-categories', {
             params: {
                 'sort': 'name:asc'
             }
@@ -114,7 +125,7 @@ const blogService = {
             queryParams['sort[1]'] = 'title:asc'
         }
 
-        return strapiClient.get('/blogs', { params: queryParams })
+        return cmsClient.get('/blogs', { params: queryParams })
     }
 }
 

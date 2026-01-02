@@ -1,4 +1,3 @@
-import { strapiClient } from '../config/strapiClient'
 import envConfig from '../config/env'
 import { extractData } from '../utils/apiUtils'
 

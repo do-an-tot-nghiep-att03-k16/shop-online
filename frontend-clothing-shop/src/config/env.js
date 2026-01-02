@@ -1,7 +1,7 @@
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL || 'http://localhost:3055/v1/api'
 const API_STRAPI_URL =
-    import.meta.env.VITE_API_STRAPI_URL || 'https://cms.aristia.shop/api'
+    import.meta.env.VITE_API_STRAPI_URL || 'https://cms.aristia.shop'
 
 // Supabase Configuration
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
