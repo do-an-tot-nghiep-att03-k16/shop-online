@@ -1,0 +1,1 @@
+[![Build and Push Docker Images (GHCR)](https://github.com/QingYunne/ecommerce-project/actions/workflows/build-ghcr.yml/badge.svg)](https://github.com/QingYunne/ecommerce-project/actions/workflows/build-ghcr.yml)
