@@ -36,6 +36,7 @@ import {
     EnvironmentOutlined,
     MessageOutlined,
     PlusOutlined,
+    LockOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '../hooks/useAuth'
 import authService from '../services/authService'
@@ -85,6 +86,11 @@ const Profile = () => {
     const [updating, setUpdating] = useState(false)
     const [form] = Form.useForm()
     const [addressForm] = Form.useForm()
+    
+    // Change password states
+    const [passwordModalOpen, setPasswordModalOpen] = useState(false)
+    const [passwordForm] = Form.useForm()
+    const [changingPassword, setChangingPassword] = useState(false)
 
     // Location data hooks
     const { data: provincesData, isLoading: provincesLoading } = useProvinces()
@@ -96,6 +102,22 @@ const Profile = () => {
     
     const provinces = provincesData?.metadata || []
     const wards = wardsData?.metadata || []
+
+    // Handle change password
+    const handleChangePassword = async (values) => {
+        setChangingPassword(true)
+        try {
+            await authService.changePassword(values.newPassword)
+            message.success('Đổi mật khẩu thành công!')
+            setPasswordModalOpen(false)
+            passwordForm.resetFields()
+        } catch (error) {
+            console.error('Change password error:', error)
+            message.error(error.message || 'Đổi mật khẩu thất bại')
+        } finally {
+            setChangingPassword(false)
+        }
+    }
 
     const handleRefresh = async () => {
         setRefreshing(true)
@@ -545,6 +567,12 @@ const Profile = () => {
                                         onClick={handleOpenEditModal}
                                     >
                                         Chỉnh sửa thông tin
+                                    </Button>
+                                    <Button
+                                        icon={<LockOutlined />}
+                                        onClick={() => setPasswordModalOpen(true)}
+                                    >
+                                        Đổi mật khẩu
                                     </Button>
                                     <Button
                                         icon={<EditOutlined />}
@@ -1151,6 +1179,81 @@ const Profile = () => {
                             </Form.Item>
                         </Col>
                     </Row>
+                </Form>
+            </Modal>
+
+            {/* Change Password Modal */}
+            <Modal
+                title="Đổi mật khẩu"
+                open={passwordModalOpen}
+                onCancel={() => {
+                    setPasswordModalOpen(false)
+                    passwordForm.resetFields()
+                }}
+                onOk={() => passwordForm.submit()}
+                confirmLoading={changingPassword}
+                width={500}
+            >
+                <Form
+                    form={passwordForm}
+                    layout="vertical"
+                    onFinish={handleChangePassword}
+                >
+                    <Form.Item
+                        label="Mật khẩu mới"
+                        name="newPassword"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập mật khẩu mới!' },
+                            { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+                            { 
+                                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                                message: 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số!'
+                            }
+                        ]}
+                        hasFeedback
+                    >
+                        <Input.Password
+                            prefix={<LockOutlined />}
+                            placeholder="Nhập mật khẩu mới"
+                            disabled={changingPassword}
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Xác nhận mật khẩu mới"
+                        name="confirmPassword"
+                        dependencies={['newPassword']}
+                        rules={[
+                            { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('newPassword') === value) {
+                                        return Promise.resolve()
+                                    }
+                                    return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'))
+                                },
+                            }),
+                        ]}
+                        hasFeedback
+                    >
+                        <Input.Password
+                            prefix={<LockOutlined />}
+                            placeholder="Nhập lại mật khẩu mới"
+                            disabled={changingPassword}
+                        />
+                    </Form.Item>
+
+                    <div style={{ color: '#666', fontSize: 12, marginTop: 16 }}>
+                        <p style={{ marginBottom: 4 }}>
+                            <strong>Yêu cầu mật khẩu:</strong>
+                        </p>
+                        <ul style={{ paddingLeft: 20, margin: 0 }}>
+                            <li>Ít nhất 6 ký tự</li>
+                            <li>Ít nhất 1 chữ cái viết hoa</li>
+                            <li>Ít nhất 1 chữ cái viết thường</li>
+                            <li>Ít nhất 1 chữ số</li>
+                        </ul>
+                    </div>
                 </Form>
             </Modal>
             </div>

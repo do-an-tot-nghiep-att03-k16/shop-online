@@ -24,4 +24,8 @@ RUN npm run build
 # Serve static with nginx
 FROM nginx:1.27-alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom nginx config for React Router support
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
