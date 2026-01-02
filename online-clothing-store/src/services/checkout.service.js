@@ -173,11 +173,32 @@ class CheckoutService {
             throw new BadRequestError('Cart is empty')
         }
 
-        // 3. Resolve shipping address from address_id
+        // 3. Resolve shipping address from address_id OR use provided custom address
         let resolvedShippingAddress
         if (shipping_address && shipping_address.address_id) {
+            // Use existing saved address
             const addressData = await AddressService.getUserAddressById(userId, shipping_address.address_id)
             resolvedShippingAddress = addressData
+        } else if (shipping_address && shipping_address.full_name && shipping_address.phone && shipping_address.address_line && shipping_address.province_id && shipping_address.ward_id) {
+            // Use custom address provided by user
+            // Fetch location names from database
+            const LocationModel = require('../models/location.model')
+            const province = await LocationModel.findById(shipping_address.province_id)
+            const ward = await LocationModel.findById(shipping_address.ward_id)
+            
+            if (!province || !ward) {
+                throw new BadRequestError('Invalid province or ward ID')
+            }
+            
+            resolvedShippingAddress = {
+                full_name: shipping_address.full_name,
+                phone: shipping_address.phone,
+                address_line: shipping_address.address_line,
+                province_id: shipping_address.province_id,
+                province: { id: province._id, name: province.name },
+                ward_id: shipping_address.ward_id,
+                ward: { id: ward._id, name: ward.name },
+            }
         } else {
             throw new BadRequestError('Shipping address is required')
         }

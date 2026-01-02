@@ -4,7 +4,6 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import './index.css'
 import App from './App.jsx'
 
-// Import Google Font for Star and Love
 const link = document.createElement('link')
 link.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap'
 link.rel = 'stylesheet'

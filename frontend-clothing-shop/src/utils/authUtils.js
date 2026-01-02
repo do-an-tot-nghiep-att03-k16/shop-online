@@ -19,6 +19,14 @@ export const authUtils = {
         }
     },
 
+    // Setters used by interceptors
+    setToken: (token) => {
+        if (token) localStorage.setItem(TOKEN_KEY, token)
+    },
+    setRefreshToken: (refreshToken) => {
+        if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+    },
+
     /**
      * Get access token
      */

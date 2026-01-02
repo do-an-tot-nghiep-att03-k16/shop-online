@@ -6,15 +6,31 @@ import { STATUS_CODES } from '../constants'
 // Define routes that require authentication
 const PROTECTED_ROUTES = [
     '/checkout',
+    '/payment',
     '/my-orders',
     '/profile',
     '/order-success',
     '/admin',
 ]
 
+// Define API endpoints that should NOT redirect on 401
+// These are typically auth-related endpoints where 401 is expected
+const NO_REDIRECT_ENDPOINTS = [
+    '/auth/login',
+    '/auth/register',
+    '/auth/verify-email',
+    '/auth/change-password',
+    '/auth/refresh-token',
+]
+
 // Helper function to check if current route is protected
 const isProtectedRoute = (pathname) => {
     return PROTECTED_ROUTES.some((route) => pathname.startsWith(route))
+}
+
+// Helper function to check if endpoint should not redirect on 401
+const shouldNotRedirect = (url) => {
+    return NO_REDIRECT_ENDPOINTS.some((endpoint) => url?.includes(endpoint))
 }
 
 const apiClient = axios.create({
@@ -174,7 +190,7 @@ apiClient.interceptors.response.use(
                 try {
                     // Call refresh token endpoint
                     const refreshResponse = await axios.post(
-                        `${envConfig.API_BASE_URL}/access/refresh-token`,
+                        `${envConfig.API_BASE_URL}/auth/refresh-token`,
                         {},
                         {
                             headers: {
@@ -204,11 +220,9 @@ apiClient.interceptors.response.use(
                     console.error('❌ Token refresh failed:', refreshError)
 
                     // Refresh failed - clear auth and redirect to login
-                    const currentPath = window.location.pathname
-                    if (isProtectedRoute(currentPath)) {
-                        console.log(
-                            '🚨 Refresh failed, redirecting to login...'
-                        )
+                    // Don't redirect if this is a whitelisted endpoint (auth endpoints where 401 is expected)
+                    if (!shouldNotRedirect(originalRequest.url)) {
+                        console.log('🚨 Refresh failed, redirecting to login...')
                         authUtils.clearAuth()
                         window.location.href = '/login'
                     }
@@ -217,11 +231,9 @@ apiClient.interceptors.response.use(
             }
 
             // No refresh token or already retried - handle normally
-            const currentPath = window.location.pathname
-            if (isProtectedRoute(currentPath)) {
-                console.log(
-                    '🚨 No refresh token available, redirecting to login...'
-                )
+            // Don't redirect if this is a whitelisted endpoint (auth endpoints where 401 is expected)
+            if (!shouldNotRedirect(originalRequest.url)) {
+                console.log('🚨 Unauthorized (401), redirecting to login...')
                 authUtils.clearAuth()
                 window.location.href = '/login'
             }
@@ -282,7 +294,7 @@ fileClient.interceptors.response.use(
                     )
 
                     const refreshResponse = await axios.post(
-                        `${envConfig.API_BASE_URL}/access/refresh-token`,
+                        `${envConfig.API_BASE_URL}/auth/refresh-token`,
                         {},
                         {
                             headers: {
@@ -312,8 +324,8 @@ fileClient.interceptors.response.use(
                         refreshError
                     )
 
-                    const currentPath = window.location.pathname
-                    if (isProtectedRoute(currentPath)) {
+                    // Don't redirect if this is a whitelisted endpoint (auth endpoints where 401 is expected)
+                    if (!shouldNotRedirect(originalRequest.url)) {
                         console.log(
                             '🚨 File upload refresh failed, redirecting to login...'
                         )
@@ -324,8 +336,8 @@ fileClient.interceptors.response.use(
                 }
             }
 
-            const currentPath = window.location.pathname
-            if (isProtectedRoute(currentPath)) {
+            // Don't redirect if this is a whitelisted endpoint (auth endpoints where 401 is expected)
+            if (!shouldNotRedirect(originalRequest.url)) {
                 console.log(
                     '🚨 File upload unauthorized, redirecting to login...'
                 )

@@ -1,0 +1,109 @@
+version: "3.9"
+
+services:
+  reverse-proxy:
+    image: nginx:1.27-alpine
+    container_name: reverse-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/nginx/ssl/cloudflare:/etc/nginx/ssl/cloudflare:ro
+    depends_on:
+      - frontend
+      - backend
+      - cms
+    restart: always
+
+  backend:
+    image: ghcr.io/${GITHUB_OWNER}/online-clothing-store:latest
+    container_name: backend
+    env_file:
+      - ./env/backend.env
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  cms:
+    image: ghcr.io/${GITHUB_OWNER}/my-cms:latest
+    container_name: cms
+    env_file:
+      - ./env/cms.env
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - cms-postgres
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/${GITHUB_OWNER}/frontend-clothing-shop:latest
+    container_name: frontend
+    restart: unless-stopped
+
+  # PostgreSQL cho Strapi CMS
+  cms-postgres:
+    image: postgres:15-alpine
+    container_name: cms-postgres
+    environment:
+      POSTGRES_DB: ${CMS_DB_NAME:-strapi}
+      POSTGRES_USER: ${CMS_DB_USER:-strapi}
+      POSTGRES_PASSWORD: ${CMS_DB_PASSWORD}
+    volumes:
+      - cms_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis cho Backend
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # N8N Workflow Automation (Optional)
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${N8N_DB_NAME:-n8n}
+      - DB_POSTGRESDB_USER=${N8N_DB_USER:-n8n}
+      - DB_POSTGRESDB_PASSWORD=${N8N_DB_PASSWORD}
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=168
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - n8n-postgres
+    restart: unless-stopped
+
+  # PostgreSQL cho N8N
+  n8n-postgres:
+    image: postgres:15-alpine
+    container_name: n8n-postgres
+    environment:
+      - POSTGRES_DB=${N8N_DB_NAME:-n8n}
+      - POSTGRES_USER=${N8N_DB_USER:-n8n}
+      - POSTGRES_PASSWORD=${N8N_DB_PASSWORD}
+    volumes:
+      - n8n_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  cms_postgres_data:
+  redis_data:
+  n8n_data:
+  n8n_postgres_data:
