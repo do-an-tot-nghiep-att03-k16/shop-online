@@ -26,7 +26,8 @@ export default {
       console.log('🔄 Starting backend sync scheduler...');
 
       // Import sync function
-      const syncScriptPath = path.join(__dirname, '../scripts/sync-backend-data.js');
+      // __dirname trong production build = /app/dist, script ở /app/scripts
+      const syncScriptPath = path.join(process.cwd(), 'scripts/sync-backend-data.js');
       
       if (fs.existsSync(syncScriptPath)) {
         try {
