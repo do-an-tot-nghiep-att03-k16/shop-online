@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react'
 import { Button } from 'antd'
 import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import './HeroBanner.css'
+import envConfig from '../../config/env'
+
+// Đảm bảo URL không có /api ở cuối (vì upload path không cần /api)
+const DEFAULT_CMS_URL = envConfig.API_STRAPI_URL.replace(/\/api$/, '');
 
 const HeroBanner = ({ 
     banners = [], 
     settings = {}, 
     content = {},
-    cmsUrl = 'http://localhost:1337' 
+    cmsUrl = DEFAULT_CMS_URL
 }) => {
     const [currentSlide, setCurrentSlide] = useState(0)
     const [isAutoPlaying, setIsAutoPlaying] = useState(settings.autoplay !== false)

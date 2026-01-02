@@ -1,8 +1,12 @@
 // components/Blog/BlogContent.jsx
 import React from 'react'
 import { Typography, Image } from 'antd'
+import envConfig from '../../config/env'
 
 const { Title, Paragraph, Text } = Typography
+
+// Đảm bảo URL không có /api ở cuối
+const CMS_BASE_URL = envConfig.API_STRAPI_URL.replace(/\/api$/, '');
 
 const BlogContent = ({ content }) => {
     if (!content || !Array.isArray(content)) {
@@ -46,9 +50,9 @@ const BlogContent = ({ content }) => {
                 const image = block.image
                 if (!image) return null
                 
-                const imageUrl = image.url.startsWith('http') 
+                const imageUrl = image.url?.startsWith('http') 
                     ? image.url 
-                    : `http://localhost:1337${image.url}`
+                    : `${CMS_BASE_URL}${image.url}`
                 
                 return (
                     <div key={index} style={{ margin: '32px 0', textAlign: 'center' }}>

@@ -8,8 +8,12 @@ import BlogCard from '../../components/Blog/BlogCard'
 import BlogContent from '../../components/Blog/BlogContent'
 import SmoothTransition from '../../components/Common/SmoothTransition'
 import '../../components/Blog/Blog.css'
+import envConfig from '../../config/env'
 
 const { Title, Paragraph, Text } = Typography
+
+// Đảm bảo URL không có /api ở cuối
+const CMS_BASE_URL = envConfig.API_STRAPI_URL.replace(/\/api$/, '');
 
 const BlogDetail = () => {
     const { slug } = useParams()
@@ -36,10 +40,8 @@ const BlogDetail = () => {
     const getThumbnailUrl = (thumbnail) => {
         if (!thumbnail) return '/images/blog-default.jpg'
         
-        if (thumbnail.formats?.large?.url) {
-            return `http://localhost:1337${thumbnail.formats.large.url}`
-        }
-        return `http://localhost:1337${thumbnail.url}`
+        const url = thumbnail.formats?.large?.url || thumbnail.url;
+        return url?.startsWith('http') ? url : `${CMS_BASE_URL}${url}`;
     }
 
     const getRelatedBlogs = () => {
@@ -234,7 +236,10 @@ const BlogDetail = () => {
                                                             <div style={{ display: 'flex', gap: '12px' }}>
                                                                 {relatedBlog.thumbnail && (
                                                                     <img
-                                                                        src={`http://localhost:1337${relatedBlog.thumbnail.formats?.small?.url || relatedBlog.thumbnail.url}`}
+                                                                        src={(() => {
+                                                                            const url = relatedBlog.thumbnail.formats?.small?.url || relatedBlog.thumbnail.url;
+                                                                            return url?.startsWith('http') ? url : `${CMS_BASE_URL}${url}`;
+                                                                        })()}
                                                                         alt={relatedBlog.title}
                                                                         style={{
                                                                             width: '80px',

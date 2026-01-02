@@ -50,6 +50,7 @@ jobs:
           no-cache: true
           build-args: |
             VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+            VITE_API_STRAPI_URL=${{ secrets.VITE_API_STRAPI_URL }}
             VITE_CMS_URL=${{ secrets.VITE_CMS_URL }}
             VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}

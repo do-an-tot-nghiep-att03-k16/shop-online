@@ -457,7 +457,6 @@ const Home = () => {
                     title: activeHeroTitle,
                     subtitle: activeHeroSubtitle,
                 }}
-                cmsUrl={import.meta.env.VITE_CMS_URL || 'http://localhost:1337'}
             />
 
             {/* Featured Coupons Section - Moved to top */}

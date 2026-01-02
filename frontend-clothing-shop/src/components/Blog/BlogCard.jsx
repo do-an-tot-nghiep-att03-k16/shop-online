@@ -4,8 +4,12 @@ import { Link } from 'react-router-dom'
 import { CalendarOutlined, ReadOutlined } from '@ant-design/icons'
 import { formatDate } from '../../utils/dateUtils'
 import './Blog.css'
+import envConfig from '../../config/env'
 
 const { Paragraph, Text } = Typography
+
+// Đảm bảo URL không có /api ở cuối
+const CMS_BASE_URL = envConfig.API_STRAPI_URL.replace(/\/api$/, '');
 
 const BlogCard = ({ blog }) => {
     if (!blog) return null
@@ -23,10 +27,8 @@ const BlogCard = ({ blog }) => {
     const getThumbnailUrl = () => {
         if (!thumbnail) return '/images/blog-default.jpg'
         
-        if (thumbnail.formats?.medium?.url) {
-            return `http://localhost:1337${thumbnail.formats.medium.url}`
-        }
-        return `http://localhost:1337${thumbnail.url}`
+        const url = thumbnail.formats?.medium?.url || thumbnail.url;
+        return url?.startsWith('http') ? url : `${CMS_BASE_URL}${url}`;
     }
 
     return (
