@@ -1,9 +1,15 @@
+import axios from 'axios'
 import envConfig from '../config/env'
-import { extractData } from '../utils/apiUtils'
 
-// Đảm bảo URL luôn có /api
+// Tạo axios client cho CMS
 const CMS_URL = envConfig.API_STRAPI_URL.replace(/\/api$/, '');
-const STRAPI_API_URL = `${CMS_URL}/api`;
+const cmsClient = axios.create({
+    baseURL: `${CMS_URL}/api`,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+})
 
 /**
  * Service để lấy thông tin cấu hình website từ Strapi
@@ -14,47 +20,8 @@ export const settingService = {
      * @returns {Promise<Object>} Website setting data
      */
     async getWebsiteSetting() {
-        try {
-            // console.log('🔄 Fetching website setting from Strapi...')
-            
-            const response = await fetch(`${STRAPI_API_URL}/setting`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-
-            const data = await response.json()
-            // console.log('✅ Website setting loaded:', data.data)
-
-            return {
-                success: true,
-                data: data.data,
-                message: 'Website setting loaded successfully'
-            }
-
-        } catch (error) {
-            console.error('❌ Error fetching website setting:', error)
-            
-            // Fallback data nếu API bị lỗi
-            return {
-                success: false,
-                error: error.message,
-                data: {
-                    shop_name: 'Aristia',
-                    facebook_url: '#',
-                    message_url: '#', 
-                    instagram_url: '#',
-                    hotline: '0867334316',
-                    email: 'contact@aristia.com'
-                },
-                message: 'Using fallback setting data'
-            }
-        }
+        const response = await cmsClient.get('/setting')
+        return response.data.data
     },
 
     /**

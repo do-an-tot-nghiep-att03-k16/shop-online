@@ -21,8 +21,8 @@ export const useHomeConfig = () => {
         refetchOnWindowFocus: false
     })
 
-    // Extract and format data
-    const homeConfig = data?.data || null
+    // Extract and format data (service đã trả về data trực tiếp)
+    const homeConfig = data || null
     const heroSection = homeConfig ? homeService.formatHeroSection(homeConfig) : null
     const productSections = homeConfig ? homeService.formatProductSections(homeConfig) : homeService.formatProductSections(null)
 

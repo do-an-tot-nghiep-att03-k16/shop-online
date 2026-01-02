@@ -21,8 +21,8 @@ export const useSetting = () => {
         refetchOnWindowFocus: false
     })
 
-    // Extract setting data
-    const setting = data?.data || null
+    // Extract setting data (service đã trả về data trực tiếp)
+    const setting = data || null
     const contactInfo = setting ? settingService.formatContactInfo(setting) : null
     const socialLinks = setting ? settingService.formatSocialLinks(setting) : []
 

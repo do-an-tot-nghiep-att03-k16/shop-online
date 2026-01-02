@@ -181,7 +181,7 @@ const BlogSection = () => {
         return (
             <div style={{ marginBottom: 48 }}>
                 <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                    <Title level={2}>📖 Blog thời trang</Title>
+                    <Title level={2}>Blog thời trang</Title>
                 </div>
                 <Row gutter={[24, 24]}>
                     {[...Array(3)].map((_, index) => (
@@ -202,7 +202,7 @@ const BlogSection = () => {
         <div style={{ marginBottom: '48px' }}>
             <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                 <Title level={2} style={{ marginBottom: '16px' }}>
-                    📖 Blog Thời Trang
+                    Blog Thời Trang
                 </Title>
                 <Paragraph
                     style={{
@@ -828,61 +828,6 @@ const Home = () => {
                 {/* Gender Sections */}
                 <GenderSection gender="female" title="Thời trang nữ" />
                 <GenderSection gender="male" title="Thời trang nam" />
-
-                {/* Featured Products Section */}
-                <section style={{ marginBottom: 48 }}>
-                    <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                        <Title level={2}>Sản phẩm nổi bật</Title>
-                        <Paragraph>
-                            Những sản phẩm được yêu thích nhất
-                        </Paragraph>
-                    </div>
-
-                    {Array.isArray(processedProducts) &&
-                    processedProducts.length > 0 ? (
-                        <Row gutter={[12, 16]}>
-                            {processedProducts.slice(0, 8).map((product) => (
-                                <Col
-                                    xs={24}
-                                    sm={12}
-                                    md={8}
-                                    lg={6}
-                                    key={product._id}
-                                >
-                                    <ProductCard product={product} />
-                                </Col>
-                            ))}
-                        </Row>
-                    ) : (
-                        <div style={{ textAlign: 'center', padding: 48 }}>
-                            <Paragraph>Chưa có sản phẩm nào.</Paragraph>
-                        </div>
-                    )}
-
-                    {/* Pagination */}
-                    {totalProducts > pageSize && (
-                        <div style={{ textAlign: 'center', marginTop: 32 }}>
-                            <Pagination
-                                current={currentPage}
-                                pageSize={pageSize}
-                                total={totalProducts}
-                                onChange={setCurrentPage}
-                                showSizeChanger={false}
-                                showTotal={(total, range) =>
-                                    `${range[0]}-${range[1]} trong ${total} sản phẩm`
-                                }
-                            />
-                        </div>
-                    )}
-
-                    <div style={{ textAlign: 'center', marginTop: 32 }}>
-                        <Button type="primary" size="large">
-                            <Link to="/shop" style={{ color: 'inherit' }}>
-                                Xem tất cả sản phẩm
-                            </Link>
-                        </Button>
-                    </div>
-                </section>
 
                 {/* Features Section */}
                 <section style={{ marginBottom: 48 }}>

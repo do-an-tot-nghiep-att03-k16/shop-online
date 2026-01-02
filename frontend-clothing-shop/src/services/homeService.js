@@ -1,9 +1,15 @@
-import { extractData } from '../utils/apiUtils'
+import axios from 'axios'
 import envConfig from '../config/env'
 
-// Đảm bảo URL luôn có /api
+// Tạo axios client cho CMS
 const CMS_URL = envConfig.API_STRAPI_URL.replace(/\/api$/, '');
-const STRAPI_API_URL = `${CMS_URL}/api`;
+const cmsClient = axios.create({
+    baseURL: `${CMS_URL}/api`,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+})
 
 /**
  * Service để lấy cấu hình trang Home từ Strapi CMS
@@ -14,37 +20,10 @@ export const homeService = {
      * @returns {Promise<Object>} Home page configuration
      */
     async getHomePageConfig() {
-        try {
-            
-            const response = await fetch(`${STRAPI_API_URL}/home-configuration?populate=*`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-
-            const data = await response.json()
-
-            return {
-                success: true,
-                data: data.data,
-                message: 'Home page config loaded successfully'
-            }
-
-        } catch (error) {
-            
-            // Fallback config nếu Strapi bị lỗi
-            return {
-                success: false,
-                error: error.message,
-                data: this.getFallbackConfig(),
-                message: 'Using fallback home page config'
-            }
-        }
+        const response = await cmsClient.get('/home-configuration', {
+            params: { populate: '*' }
+        })
+        return response.data.data
     },
 
     /**
