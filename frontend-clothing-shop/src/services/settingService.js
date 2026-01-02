@@ -1,6 +1,10 @@
 import envConfig from '../config/env'
 import { extractData } from '../utils/apiUtils'
 
+// Đảm bảo URL luôn có /api
+const CMS_URL = envConfig.API_STRAPI_URL.replace(/\/api$/, '');
+const STRAPI_API_URL = `${CMS_URL}/api`;
+
 /**
  * Service để lấy thông tin cấu hình website từ Strapi
  */
@@ -13,7 +17,7 @@ export const settingService = {
         try {
             // console.log('🔄 Fetching website setting from Strapi...')
             
-            const response = await fetch(`${envConfig.API_STRAPI_URL}/setting`, {
+            const response = await fetch(`${STRAPI_API_URL}/setting`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

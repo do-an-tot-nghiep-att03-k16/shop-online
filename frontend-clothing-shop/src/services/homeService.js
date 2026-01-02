@@ -1,6 +1,10 @@
 import { extractData } from '../utils/apiUtils'
 import envConfig from '../config/env'
 
+// Đảm bảo URL luôn có /api
+const CMS_URL = envConfig.API_STRAPI_URL.replace(/\/api$/, '');
+const STRAPI_API_URL = `${CMS_URL}/api`;
+
 /**
  * Service để lấy cấu hình trang Home từ Strapi CMS
  */
@@ -12,7 +16,7 @@ export const homeService = {
     async getHomePageConfig() {
         try {
             
-            const response = await fetch(`${envConfig.API_STRAPI_URL}/home-configuration?populate=*`, {
+            const response = await fetch(`${STRAPI_API_URL}/home-configuration?populate=*`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
