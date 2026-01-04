@@ -107,24 +107,35 @@ export const homeService = {
     formatHeroBanners(banners) {
         if (!banners || !Array.isArray(banners)) return []
 
-        return banners.map(banner => ({
-            id: banner.id || banner.documentId,
-            name: banner.name,
-            url: banner.url,
-            alternativeText: banner.alternativeText || banner.caption || banner.name,
-            caption: banner.caption,
-            width: banner.width,
-            height: banner.height,
-            formats: banner.formats || {},
-            // Add responsive image URLs
-            urls: {
-                original: banner.url,
-                large: banner.formats?.large?.url || banner.url,
-                medium: banner.formats?.medium?.url || banner.url,
-                small: banner.formats?.small?.url || banner.url,
-                thumbnail: banner.formats?.thumbnail?.url || banner.url
+        return banners.map(banner => {
+            // Helper function to add CMS_URL to relative paths
+            const getFullUrl = (url) => {
+                if (!url) return ''
+                // If URL starts with http/https, return as is
+                if (url.startsWith('http://') || url.startsWith('https://')) return url
+                // Otherwise, prepend CMS_URL
+                return `${CMS_URL}${url}`
             }
-        }))
+
+            return {
+                id: banner.id || banner.documentId,
+                name: banner.name,
+                url: getFullUrl(banner.url),
+                alternativeText: banner.alternativeText || banner.caption || banner.name,
+                caption: banner.caption,
+                width: banner.width,
+                height: banner.height,
+                formats: banner.formats || {},
+                // Add responsive image URLs with full URL
+                urls: {
+                    original: getFullUrl(banner.url),
+                    large: getFullUrl(banner.formats?.large?.url) || getFullUrl(banner.url),
+                    medium: getFullUrl(banner.formats?.medium?.url) || getFullUrl(banner.url),
+                    small: getFullUrl(banner.formats?.small?.url) || getFullUrl(banner.url),
+                    thumbnail: getFullUrl(banner.formats?.thumbnail?.url) || getFullUrl(banner.url)
+                }
+            }
+        })
     },
 
     /**

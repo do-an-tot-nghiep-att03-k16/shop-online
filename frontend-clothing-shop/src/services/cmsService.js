@@ -37,6 +37,13 @@ const DEFAULT_SETTING = {
   address: 'Hà Nội, Việt Nam'
 };
 
+// Helper function to add full URL to images
+const getFullImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${CMS_URL}${url}`;
+};
+
 // Get Home Configuration
 export const getHomeConfiguration = async () => {
   try {
@@ -44,10 +51,24 @@ export const getHomeConfiguration = async () => {
     
     if (response.data?.data) {
       const config = response.data.data;
+      
+      // Fix image URLs in hero_banners
+      const heroBanners = (config.hero_banners || []).map(banner => ({
+        ...banner,
+        url: getFullImageUrl(banner.url),
+        formats: banner.formats ? Object.keys(banner.formats).reduce((acc, key) => {
+          acc[key] = {
+            ...banner.formats[key],
+            url: getFullImageUrl(banner.formats[key].url)
+          };
+          return acc;
+        }, {}) : {}
+      }));
+      
       return {
         ...DEFAULT_HOME_CONFIG,
         ...config,
-        hero_banners: config.hero_banners || [],
+        hero_banners: heroBanners,
         featured_categories: config.featured_categories || [],
         featured_coupons: config.featured_coupons || []
       };
