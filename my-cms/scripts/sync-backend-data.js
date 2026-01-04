@@ -75,9 +75,9 @@ async function syncCategories() {
                 }
 
                 if (existing && existing.length > 0) {
-                    // Update
+                    // Update - Strapi 5 dùng documentId
                     await strapiClient.put(
-                        `/categories/${existing[0].id}`,
+                        `/categories/${existing[0].documentId}`,
                         categoryData
                     )
                     updated++
@@ -158,9 +158,9 @@ async function syncCoupons() {
                 }
 
                 if (existing && existing.length > 0) {
-                    // Update
+                    // Update - Strapi 5 dùng documentId
                     await strapiClient.put(
-                        `/coupons/${existing[0].id}`,
+                        `/coupons/${existing[0].documentId}`,
                         couponData
                     )
                     updated++
