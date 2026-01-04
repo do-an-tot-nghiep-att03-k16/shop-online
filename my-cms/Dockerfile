@@ -7,8 +7,11 @@ COPY package*.json ./
 # Install all dependencies (needed for build)
 RUN npm ci
 
-# Copy source code
+# Copy source code and scripts
 COPY . .
+
+# Ensure scripts directory exists (needed for sync functionality)
+RUN test -d scripts || mkdir -p scripts
 
 # Build Strapi
 ENV NODE_ENV=production

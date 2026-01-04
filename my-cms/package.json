@@ -4,9 +4,6 @@
   "private": true,
   "description": "A Strapi application",
   "scripts": {
-    "sync-backend": "node scripts/sync-backend-data.js",
-    "sync-scheduler": "node scripts/scheduler.js",
-    "sync-scheduler-now": "node scripts/scheduler.js --sync-now",
     "build": "strapi build",
     "console": "strapi console",
     "deploy": "strapi deploy",
@@ -18,9 +15,7 @@
     "upgrade:dry": "npx @strapi/upgrade latest --dry",
     "sync:all": "node scripts/sync-backend-data.js all",
     "sync:categories": "node scripts/sync-backend-data.js categories",
-    "sync:coupons": "node scripts/sync-backend-data.js coupons",
-    "test:backend": "node scripts/test-backend-connection.js",
-    "test:strapi": "node scripts/test-strapi-connection.js"
+    "sync:coupons": "node scripts/sync-backend-data.js coupons"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "5.32.0",
