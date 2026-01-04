@@ -22,4 +22,6 @@ const otpSchema = new Schema(
     }
 )
 
+otpSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 })
+
 module.exports = model(DOCUMENT_NAME, otpSchema)
