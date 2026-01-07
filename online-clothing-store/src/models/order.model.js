@@ -195,7 +195,7 @@ const orderSchema = new Schema(
 )
 
 // Indexes
-orderSchema.index({ order_number: 1 })
+// Note: order_number already has unique index from schema definition
 orderSchema.index({ user_id: 1, createdAt: -1 })
 orderSchema.index({ status: 1 })
 orderSchema.index({ payment_status: 1 })

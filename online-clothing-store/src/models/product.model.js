@@ -109,7 +109,7 @@ const productSchema = new Schema(
     { timestamps: true, collection: COLLECTION_NAME }
 )
 
-productSchema.index({ slug: 1 })
+// Note: slug already has unique index from schema definition
 productSchema.index({ category_ids: 1 })
 productSchema.index({ status: 1 })
 productSchema.index({ 'variants.sku': 1 }, { unique: true })

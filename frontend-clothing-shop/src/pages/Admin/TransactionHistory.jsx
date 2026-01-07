@@ -15,7 +15,8 @@ import {
     Descriptions,
     Tooltip,
     message,
-    Badge
+    Badge,
+    Typography
 } from 'antd'
 import {
     SearchOutlined,
@@ -410,26 +411,23 @@ const TransactionHistory = () => {
     )
 
     return (
-        <div style={{ padding: 'clamp(12px, 3vw, 24px)' }}>
-            <Card
-                title="Lịch sử giao dịch"
-                extra={
-                    <Space wrap>
-                        <Button
-                            type="primary"
-                            icon={<ReloadOutlined />}
-                            onClick={fetchTransactionHistory}
-                            size="small"
-                        >
-                            <span style={{ display: window.innerWidth > 768 ? 'inline' : 'none' }}>
-                                Làm mới
-                            </span>
-                        </Button>
-                    </Space>
-                }
-            >
-                {renderFilters()}
-                {renderStats()}
+        <div style={{ padding: 24 }}>
+            {/* Header */}
+            <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+                <Col>
+                    <Typography.Title level={3} style={{ margin: 0 }}>
+                        Lịch sử giao dịch
+                    </Typography.Title>
+                    <Typography.Text type="secondary">
+                        Theo dõi và quản lý các giao dịch thanh toán
+                    </Typography.Text>
+                </Col>
+            </Row>
+
+            {renderFilters()}
+            {renderStats()}
+
+            <Card>
                 
                 <Table
                     columns={columns}

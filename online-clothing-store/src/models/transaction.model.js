@@ -10,8 +10,7 @@ const transactionSchema = new Schema({
     // Exact fields từ SePay webhook
     id: {
         type: Number,
-        required: true,
-        index: true
+        required: true
     },
     gateway: {
         type: String,
@@ -31,8 +30,7 @@ const transactionSchema = new Schema({
     },
     content: {
         type: String,
-        required: true,
-        index: true
+        required: true
     },
     transferType: {
         type: String,
@@ -63,8 +61,7 @@ const transactionSchema = new Schema({
     
     // Processing info
     order_id: {
-        type: String,
-        index: true
+        type: String
     },
     processed: {
         type: Boolean,

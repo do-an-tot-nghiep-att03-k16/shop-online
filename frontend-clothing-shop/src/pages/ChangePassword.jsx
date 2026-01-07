@@ -2,14 +2,13 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Form, Input, Button, Card, message, Alert } from 'antd'
 import { LockOutlined, CheckCircleOutlined } from '@ant-design/icons'
-import { authService } from '../services/authService'
 import { useAuth } from '../hooks/useAuth'
 
 const ChangePassword = () => {
     const [form] = Form.useForm()
     const navigate = useNavigate()
     const location = useLocation()
-    const { isAuthenticated, user } = useAuth()
+    const { isAuthenticated, user, changePassword } = useAuth()
     const [loading, setLoading] = useState(false)
     const [isFromVerification, setIsFromVerification] = useState(false)
 
@@ -34,9 +33,10 @@ const ChangePassword = () => {
 
         setLoading(true)
         try {
-            await authService.changePassword(values.password)
+            // Sử dụng Redux action để đổi password
+            await changePassword(values.password)
             
-            message.success('Đặt mật khẩu thành công!')
+            message.success('Đặt mật khẩu thành công! Đang chuyển hướng...')
             
             // Redirect về trang chủ
             setTimeout(() => {

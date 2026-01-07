@@ -334,8 +334,20 @@ const CouponManagement = () => {
     }
 
     return (
-        <div>
-            {/* Header Card */}
+        <div style={{ padding: 24 }}>
+            {/* Header */}
+            <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+                <Col>
+                    <Title level={3} style={{ margin: 0 }}>
+                        Quản lý Khuyến mãi
+                    </Title>
+                    <Typography.Text type="secondary">
+                        Quản lý mã giảm giá và chương trình khuyến mãi
+                    </Typography.Text>
+                </Col>
+            </Row>
+
+            {/* Filter Card */}
             <Card style={{ marginBottom: 16 }}>
                 <Row gutter={[16, 16]} align="middle">
                     <Col xs={24} sm={12} md={8}>

@@ -76,10 +76,10 @@ const UserManagement = () => {
                     userId: editingUser._id,
                     data: values,
                 })
-                message.success('Cập nhật user thành công!')
+                // Message đã được hiển thị trong useUpdateUser hook
             } else {
                 await createMutation.mutateAsync(values)
-                message.success('Tạo user mới thành công!')
+                // Message đã được hiển thị trong useCreateUser hook
             }
 
             setIsModalOpen(false)
@@ -87,6 +87,7 @@ const UserManagement = () => {
             setEditingUser(null)
         } catch (error) {
             console.error('Error saving user:', error)
+            // Error message cũng đã được hiển thị trong hook
         }
     }
 
@@ -94,9 +95,10 @@ const UserManagement = () => {
     const handleDelete = async (userId) => {
         try {
             await deleteMutation.mutateAsync(userId)
-            message.success('Xóa user thành công!')
+            // Message đã được hiển thị trong useDeleteUser hook
         } catch (error) {
             console.error('Error deleting user:', error)
+            // Error message cũng đã được hiển thị trong hook
         }
     }
 

@@ -85,11 +85,21 @@ export const authService = {
 
     /**
      * Đổi mật khẩu sau khi verify email
+     * Backend trả về tokens mới để invalidate tokens cũ
      */
     changePassword: async (password) => {
         try {
             const response = await accessAPI.changePassword(password)
-            return response.data || response
+            
+            // Extract tokens từ response
+            const { tokens } = extractMultipleData(response, ['tokens'])
+            
+            // Validate tokens
+            if (!tokens?.accessToken) {
+                throw new Error('Không nhận được token mới từ server')
+            }
+            
+            return { tokens }
         } catch (error) {
             throw handleApiError(error, 'Đổi mật khẩu thất bại')
         }

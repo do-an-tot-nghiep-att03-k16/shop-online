@@ -193,7 +193,7 @@ function InventoryManagement() {
             {/* Header */}
             <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
                 <Col>
-                    <Title level={2}>📦 Quản lý Tồn kho</Title>
+                    <Title level={2}>Quản lý Tồn kho</Title>
                 </Col>
                 <Col>
                     <Space>

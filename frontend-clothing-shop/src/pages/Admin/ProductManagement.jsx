@@ -202,13 +202,13 @@ const ProductManagement = () => {
                     data: formData,
                 })
 
-                message.success('Cập nhật sản phẩm thành công!')
+                // Message đã được hiển thị trong useUpdateProduct hook
             } else {
                 // Create new product
 
                 const result = await createProductMutation.mutateAsync(formData)
 
-                message.success('Tạo sản phẩm thành công!')
+                // Message đã được hiển thị trong useCreateProduct hook
             }
 
             // Close modal and refresh

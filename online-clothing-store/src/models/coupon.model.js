@@ -96,7 +96,7 @@ const couponSchema = new Schema(
 )
 
 // Index
-couponSchema.index({ code: 1 })
+// Note: code already has unique index from schema definition
 couponSchema.index({ is_active: 1, start_date: 1, end_date: 1 })
 
 // Security and performance indexes

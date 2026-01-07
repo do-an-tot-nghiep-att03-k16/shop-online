@@ -25,6 +25,15 @@ const checkEmailToken = async ({ token }) => {
     })
     if (!tokenRes) throw new NotFoundError('token not found')
 
+    // ✅ Check token đã hết hạn chưa
+    const now = new Date()
+    if (tokenRes.expireAt && tokenRes.expireAt < now) {
+        // Xóa token hết hạn
+        await OTP.deleteOne({ otp_token: token })
+        throw new NotFoundError('token has expired')
+    }
+
+    // Xóa token sau khi verify thành công (one-time use)
     OTP.deleteOne({ otp_token: token }).then()
 
     return tokenRes

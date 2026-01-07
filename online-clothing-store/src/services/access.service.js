@@ -301,25 +301,45 @@ class AccessService {
     static changePassword = async ({ newPassword, userId }) => {
         const redis = getRedis()
 
-        const foundUser = UserService.findById(userId)
+        const foundUser = await UserService.findById(userId)
         if (!foundUser) throw new BadRequestError('User not registered')
 
         const hashedPassword = newPassword
             ? await bcrypt.hash(newPassword, SALT_ROUNDS)
             : undefined
 
-        const passwordUpdate = UserService.changePassword(
+        const passwordUpdate = await UserService.changePassword(
             userId,
             hashedPassword
         )
         if (!passwordUpdate)
             throw new BadRequestError('User update not success')
 
+        // Invalidate tất cả tokens cũ bằng cách lưu timestamp
         const invalidationKey = `${REDIS_AVAILABLE_IAT_PREFIX}_${userId}`
         const passwordTimestamp = Math.floor(Date.now() / 1000)
         await redis.set(invalidationKey, passwordTimestamp)
 
-        return 1
+        const payload = {
+            uid: foundUser._id,
+            role: foundUser.usr_role,
+            jti: uuidv4(),
+        }
+        const tokens = await createTokenPairV2(payload)
+
+        return {
+            // user: getInfoData({
+            //     fields: [
+            //         '_id',
+            //         'usr_name',
+            //         'usr_email',
+            //         'usr_role',
+            //         'usr_status',
+            //     ],
+            //     object: foundUser,
+            // }),
+            tokens,
+        }
     }
 
     static updateProfile = async ({

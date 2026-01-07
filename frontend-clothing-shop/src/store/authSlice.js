@@ -56,10 +56,17 @@ export const verifyEmailAsync = createAsyncThunk(
 
 export const changePasswordAsync = createAsyncThunk(
     'auth/changePassword',
-    async ({ password }, { rejectWithValue }) => {
+    async ({ password }, { rejectWithValue, dispatch }) => {
         try {
-            const result = await authService.changePassword(password)
-            return result
+            const { tokens } = await authService.changePassword(password)
+            
+            // Lưu tokens mới vào localStorage
+            authUtils.saveTokens(tokens)
+            
+            // Lấy thông tin user từ localStorage (đã được lưu khi verify email)
+            const savedUser = authUtils.getUser()
+            
+            return { tokens, user: savedUser }
         } catch (error) {
             return rejectWithValue(error.message || 'Đổi mật khẩu thất bại')
         }
@@ -172,6 +179,11 @@ const authSlice = createSlice({
             .addCase(changePasswordAsync.fulfilled, (state, action) => {
                 state.loading = false
                 state.error = null
+                // Đảm bảo user vẫn trong state và authenticated = true
+                if (action.payload.user) {
+                    state.user = action.payload.user
+                    state.isAuthenticated = true
+                }
             })
             .addCase(changePasswordAsync.rejected, handleRejected)
 
