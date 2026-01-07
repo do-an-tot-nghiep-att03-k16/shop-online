@@ -8,20 +8,21 @@ ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
 ARG VITE_N8N_WEBHOOK_URL
 
-# Set NODE_ENV to production
-ENV NODE_ENV=production
+WORKDIR /app
+COPY package*.json ./
 
-# Set as environment variables for Vite build
+# Install all dependencies (including devDependencies needed for build)
+RUN npm ci
+
+COPY . .
+
+# Set environment variables for Vite build
+ENV NODE_ENV=production
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_API_STRAPI_URL=$VITE_API_STRAPI_URL
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 ENV VITE_N8N_WEBHOOK_URL=$VITE_N8N_WEBHOOK_URL
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
 
 # Build with production mode
 RUN npm run build
